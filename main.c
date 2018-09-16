@@ -1,19 +1,16 @@
 #include <asf.h>
 
-void adc_setup(void)
+void adc_register_setup(void)
 {
-	//ADC clock setup
-	adc_init(ADC, sysclk_get_main_hz(), sysclk_get_main_hz()/2, ADC_STARTUP_TIME_5);
-	//Configure ADC tracking time, settling time and data transfer time
-	adc_configure_timing(ADC, 0, ADC_SETTLING_TIME_0, 0);
-	//Setting 12 bits of resolution for the ADC
-	adc_set_resolution(ADC, ADC_MR_LOWRES_BITS_12);
-	//Enabling ADC on channel 5
-	adc_enable_channel(ADC, ADC_CHANNEL_5);
-	//SW trigger with freerun off
-	adc_configure_trigger(ADC, ADC_TRIG_SW, 0);
-	//Enable End Of Conversion (EOC) interrupt on Channel 5
-	adc_enable_interrupt(ADC, ADC_IER_EOC5);
+	//Reset the ADC 
+	ADC->ADC_CR = 0x01;
+	//Get the mode register ready for conversion on channel 5
+	//With a software trigger
+	ADC->ADC_MR = 0x20050000;
+	//Enable ADC Channel 5
+	ADC->ADC_CHER = 0x20;
+	//Enable End of Conversion (EOC) interrupt on channel 5
+	ADC->ADC_IER = 0x20;
 	//Enable NVIC to accept interrupts from ADC
 	NVIC_EnableIRQ(ADC_IRQn);
 	//Send peripheral clock to ADC block
@@ -28,15 +25,12 @@ void ADC_Handler()
 
 int main (void)
 {
-	//Atmel SAM4s Board Setup
 	board_init();
+	//Setup the ADC to read on channel 5 with a SW trigger
+	adc_register_setup();
 	
-	//ADC Setup
-	adc_setup();
-	
-	//Trigger ADC once and show the result in the ADC_Handler function
-	adc_start(ADC);
-
+	//Start ADC Conversion once
+	ADC->ADC_CR = 0x2;
 	while (1) {
 	}
 }
