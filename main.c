@@ -31,6 +31,9 @@ int main (void)
 	
 	//Start ADC Conversion once
 	ADC->ADC_CR = 0x2;
+	printf("Testing");
+	
 	while (1) {
+		
 	}
 }
